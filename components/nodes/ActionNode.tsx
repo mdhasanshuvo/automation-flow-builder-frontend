@@ -13,34 +13,24 @@ function ActionNode({ data, id }: NodeProps) {
       return;
     }
 
-    // Update node data through global context
-    const updateNode = (window as any).updateNodeData;
-    if (updateNode) {
-      updateNode(id, { message: message.trim() });
+    // Dispatch event to update node data
+    if (typeof window !== 'undefined') {
+      const event = new CustomEvent('updateNode', { 
+        detail: { nodeId: id, data: { message: message.trim() } } 
+      });
+      window.dispatchEvent(event);
     }
     setShowEdit(false);
   };
 
   const handleDelete = () => {
     if (confirm('Delete this Action node?')) {
-      const deleteNode = (window as any).deleteNodeData;
-      if (deleteNode) {
-        deleteNode(id);
+      if (typeof window !== 'undefined') {
+        const event = new CustomEvent('deleteNode', { detail: { nodeId: id } });
+        window.dispatchEvent(event);
       }
     }
   };
-
-  // Make updateNodeData and deleteNodeData available globally for this node
-  if (typeof window !== 'undefined') {
-    (window as any).updateNodeData = (nodeId: string, newData: any) => {
-      const event = new CustomEvent('updateNode', { detail: { nodeId, data: newData } });
-      window.dispatchEvent(event);
-    };
-    (window as any).deleteNodeData = (nodeId: string) => {
-      const event = new CustomEvent('deleteNode', { detail: { nodeId } });
-      window.dispatchEvent(event);
-    };
-  }
 
   return (
     <>
@@ -76,44 +66,66 @@ function ActionNode({ data, id }: NodeProps) {
 
       {/* Edit Modal */}
       {showEdit && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
-          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">Edit Action Node</h3>
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4"
+          style={{ zIndex: 9999 }}
+          onClick={() => setShowEdit(false)}
+        >
+          <div 
+            className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-gray-900">Edit Action Node</h3>
+              <button
+                onClick={() => setShowEdit(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
             
-            <div className="px-6 py-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            {/* Content */}
+            <div className="px-6 py-6 overflow-y-auto flex-1">
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Email Message
               </label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                rows={5}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter the email message to send..."
+                onMouseDown={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+                rows={10}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base resize-none"
+                placeholder="Enter the email message to send...\n\nYou can write multiple lines here."
+                autoFocus
               />
+              <p className="mt-2 text-xs text-gray-500">This message will be sent when this node executes in the automation flow.</p>
             </div>
 
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between rounded-b-lg">
+            {/* Footer */}
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center rounded-b-xl">
               <button
                 onClick={handleDelete}
-                className="px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-md hover:bg-red-50"
+                className="px-5 py-2.5 text-sm font-medium text-red-700 bg-white border-2 border-red-300 rounded-lg hover:bg-red-50 transition-colors"
               >
                 Delete Node
               </button>
               <div className="flex space-x-3">
                 <button
                   onClick={() => setShowEdit(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                  className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
                 >
-                  Save
+                  Save Changes
                 </button>
               </div>
             </div>
