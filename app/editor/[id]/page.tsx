@@ -24,6 +24,7 @@ import DelayNode from '@/components/nodes/DelayNode';
 import ConditionNode from '@/components/nodes/ConditionNode';
 import Toolbar from '@/components/Toolbar';
 import SaveDialog from '@/components/SaveDialog';
+import KeyboardShortcuts from '@/components/KeyboardShortcuts';
 
 const nodeTypes = {
   start: StartNode,
@@ -271,6 +272,9 @@ export default function FlowEditor() {
           isUpdate={!isNewAutomation}
         />
       )}
+
+      {/* Keyboard Shortcuts */}
+      <KeyboardShortcuts onSave={() => setShowSaveDialog(true)} />
     </div>
   );
 }
